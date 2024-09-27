@@ -1,63 +1,37 @@
-/* Garantindo que o HTML e o Body ocupem 100% da tela */
 html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #add8e6; /* Cor de fundo azul claro */
-  font-family: 'Comic Sans MS', 'Comic Sans', cursive; /* Fonte amigável */
+  height: 100vh;
+  width: 100vw;
 }
 
-/* Estilo do contêiner principal do jogo */
+body {
+  background-image: url('./assets/FUNDO.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .game-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* Ajusta o conteúdo no topo */
   width: 100%;
-  height: 100%;
-  padding: 20px;
-  background-color: #ffe4b5; /* Fundo bege claro */
-  border-radius: 20px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  margin-top: 120px; /* Espaço aumentado abaixo do menu */
 }
 
-/* Estilo da grade de cartas */
-.board {
+.cards-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* Mantém sempre duas colunas */
   gap: 20px;
   padding: 20px;
-  max-width: 90vw; /* Limita a largura máxima para responsividade */
-  max-height: 80vh; /* Limita a altura máxima */
-}
-
-/* Estilo para o contador e mensagens */
-.countdown, .start-message, .menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  width: 100%; /* Ajusta a largura para 100% */
   justify-content: center;
-  text-align: center;
-  margin-top: 20px;
-}
-
-/* Botão com estilo vibrante */
-button {
-  padding: 15px 30px;
-  font-size: 24px;
-  cursor: pointer;
-  background-color: #ff6347; /* Cor vibrante */
-  color: white;
-  border: none;
-  border-radius: 12px;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #ff4500; /* Cor de hover */
 }

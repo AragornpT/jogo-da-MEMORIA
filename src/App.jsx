@@ -1,114 +1,132 @@
 import React, { useState, useEffect } from "react";
-import Card from "./Card"; // Importa o componente de carta
+import Menu from "./components/Menu";
+import Card from "./components/Card";
+import LetsPlay from "./components/LetsPlay";
+import MoveCounter from "./components/MoveCounter"; // Importe o MoveCounter
+import VictoryMessage from "./components/VictoryMessage"; // Importe o componente VictoryMessage
 import "./App.css";
-import initialCards from "./cards.json"; // Importa os pares de cartas do JSON
+import initialCards from "./cards.json"; // Cartas do jogo
 
 function App() {
-  const [cards, setCards] = useState([]); // Estado para as cartas
-  const [selectedCards, setSelectedCards] = useState([]); // Cartas selecionadas pelo jogador
-  const [matchedCards, setMatchedCards] = useState([]); // Pares encontrados
-  const [showCountdown, setShowCountdown] = useState(false); // Controla a exibição da contagem regressiva
-  const [countdown, setCountdown] = useState(5); // Temporizador de 5 segundos
-  const [gameStarted, setGameStarted] = useState(false); // Estado para indicar se o jogador está no modo de jogo
-  const [showStartMessage, setShowStartMessage] = useState(false); // Controla a exibição da mensagem "Começar"
+  const [cards, setCards] = useState([]); // Estado das cartas
+  const [selectedCards, setSelectedCards] = useState([]); // Cartas selecionadas
+  const [matchedCards, setMatchedCards] = useState([]); // Cartas combinadas
+  const [countdown, setCountdown] = useState(5); // Valor da contagem regressiva
+  const [gameStarted, setGameStarted] = useState(false); // Estado do jogo
+  const [cardsFlipped, setCardsFlipped] = useState(false); // Controla se as cartas estão viradas
+  const [moveCount, setMoveCount] = useState(0); // Contador de jogadas
+  const [gameWon, setGameWon] = useState(false); // Estado para indicar vitória
+
+  // Embaralha as cartas ao carregar o componente, apenas se ainda não estiverem embaralhadas
+  useEffect(() => {
+    if (cards.length === 0) {
+      setCards(shuffleArray([...initialCards]));
+    }
+  }, [cards]);
 
   // Função para embaralhar as cartas
-  function shuffleArray(array) {
-    return array.sort(() => Math.random() - 0.5);
-  }
+  const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
 
-  // Função para iniciar o jogo a partir do menu inicial
+  // Inicia o jogo
   const handleStart = () => {
-    setShowCountdown(true); // Mostra a contagem regressiva
+    setGameStarted(true); // Inicia o jogo
+    setCountdown(5); // Reinicia a contagem
+    setCardsFlipped(true); // Mostra as cartas viradas para cima
+    setSelectedCards([]); // Limpa as cartas selecionadas
+    setMatchedCards([]); // Limpa as combinações
     setCards(shuffleArray([...initialCards])); // Embaralha as cartas
+    setMoveCount(0); // Reinicia o contador de jogadas
+    setGameWon(false); // Reinicia o estado de vitória
   };
 
-  // Lógica para a contagem regressiva e virar as cartas
-  useEffect(() => {
-    if (showCountdown && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000); // Contagem regressiva
-      return () => clearTimeout(timer);
-    } else if (countdown === 0) {
-      setShowCountdown(false); // Para a contagem regressiva
-      setShowStartMessage(true); // Mostra a mensagem para iniciar o jogo
-    }
-  }, [countdown, showCountdown]);
+  // Reinicia o jogo ao clicar em "Exit"
+  const handleExit = () => {
+    setGameStarted(false); // Para o jogo
+    setCountdown(5); // Reinicia o contador
+    setCardsFlipped(false); // Esconde as cartas
+    setSelectedCards([]); // Limpa as seleções
+    setMatchedCards([]); // Limpa as combinações
+    setMoveCount(0); // Reinicia o contador de jogadas
+    setGameWon(false); // Reinicia o estado de vitória
+  };
 
-  // Função para começar o jogo quando as cartas são viradas para baixo
+  // Controla a contagem regressiva
   useEffect(() => {
-    if (showStartMessage) {
-      const timer = setTimeout(() => {
-        setShowStartMessage(false);
-        setGameStarted(true);
-      }, 2000); // Exibe a mensagem "Começar" por 2 segundos antes de iniciar o jogo
+    if (gameStarted && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
+    } else if (countdown === 0 && gameStarted) {
+      setCardsFlipped(false); // Vira as cartas para baixo
     }
-  }, [showStartMessage]);
+  }, [countdown, gameStarted]);
 
-  // Função para gerenciar o clique nas cartas
+  // Controla o clique nas cartas
   const handleCardClick = (card) => {
     if (
       !gameStarted ||
       selectedCards.length === 2 ||
-      selectedCards.includes(card)
+      selectedCards.includes(card) ||
+      matchedCards.includes(card)
     )
       return;
 
     setSelectedCards([...selectedCards, card]);
+
+    if (selectedCards.length === 1) {
+      const firstCard = selectedCards[0];
+      // Verifica se as duas cartas são iguais
+      if (firstCard.value === card.value) {
+        setMatchedCards([...matchedCards, firstCard, card]); // Marca como combinadas
+      }
+      // Após selecionar duas cartas (independente de serem iguais ou não), incrementa o contador de jogadas
+      setMoveCount((prevCount) => prevCount + 1);
+      // Aguarda 1 segundo antes de virar as cartas
+      setTimeout(() => setSelectedCards([]), 1000);
+    }
   };
 
-  // Lógica para verificar se as cartas selecionadas formam um par
+  // Checa se o jogador venceu (descobriu todos os pares)
   useEffect(() => {
-    if (selectedCards.length === 2) {
-      const [firstCard, secondCard] = selectedCards;
-      if (firstCard.value === secondCard.value) {
-        setMatchedCards([...matchedCards, firstCard, secondCard]); // Adiciona ao estado de cartas correspondentes
-      }
-      setTimeout(() => setSelectedCards([]), 1000); // Reseta as cartas selecionadas após 1 segundo
+    if (
+      gameStarted &&
+      matchedCards.length === cards.length &&
+      cards.length > 0
+    ) {
+      setGameWon(true); // Quando todos os pares forem combinados, indicar vitória
     }
-  }, [selectedCards]);
-
+  }, [matchedCards, gameStarted, cards]);
   return (
     <div className="game-container">
-      {!showCountdown && !gameStarted && !showStartMessage && (
-        <div className="menu">
-          <button onClick={handleStart}>Iniciar</button>{" "}
-          {/* Botão para iniciar o jogo */}
-        </div>
-      )}
+      {/* Menu sempre visível */}
+      <Menu
+        onStart={handleStart}
+        onExit={handleExit}
+        gameStarted={gameStarted}
+        countdown={countdown}
+      />
 
-      {showCountdown && (
-        <div className="countdown">
-          <h2>Memorize as Cartas!</h2>
-          <p>Revelando em: {countdown} segundos</p>
-          <div className="board">
-            {cards.map((card) => (
-              <Card
-                key={card.id}
-                card={card}
-                isFlipped={true} // Todas as cartas viradas para cima durante a contagem regressiva
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Exibir "Let's Play" se o jogo não começou */}
+      {!gameStarted && <LetsPlay onStart={handleStart} />}
 
-      {showStartMessage && (
-        <div className="start-message">
-          <h2>Começar!</h2> {/* Mensagem "Começar" antes de iniciar o jogo */}
-        </div>
-      )}
+      {/* Exibir contador de jogadas */}
+      {gameStarted && <MoveCounter moveCount={moveCount} />}
 
+      {/* Exibir a mensagem de vitória */}
+      {gameWon && <VictoryMessage onExit={handleExit} />}
+
+      {/* Tabuleiro de cartas sempre visível */}
       {gameStarted && (
-        <div className="board">
+        <div className="cards-container">
           {cards.map((card) => (
             <Card
               key={card.id}
               card={card}
               onClick={handleCardClick}
               isFlipped={
-                selectedCards.includes(card) || matchedCards.includes(card)
-              } // Controla o estado das cartas
+                cardsFlipped ||
+                selectedCards.includes(card) ||
+                matchedCards.includes(card)
+              }
             />
           ))}
         </div>
